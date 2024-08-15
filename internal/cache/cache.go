@@ -36,16 +36,16 @@ func (c *InMemoryCache) SetOrder(ctx context.Context, orderUid int, order models
 	return nil
 }
 
-func (c *InMemoryCache) GetOrder(ctx context.Context, orderUid int) (*models.Order, error) {
+func (c *InMemoryCache) GetOrder(ctx context.Context, orderUid int) (models.Order, error) {
 	c.Lock()
 	defer c.Unlock()
 
 	order, ok := c.orders[orderUid]
 	if !ok {
-		return nil, fmt.Errorf("order not found: %w", errors.New("order not found"))
+		return models.Order{}, fmt.Errorf("order not found: %w", errors.New("order not found"))
 	}
 
-	return &order, nil
+	return order, nil
 }
 
 func (c *InMemoryCache) GetAllOrders(ctx context.Context) ([]models.Order, error) {
