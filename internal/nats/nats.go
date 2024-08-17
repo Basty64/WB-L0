@@ -25,7 +25,7 @@ func NewNatsStreamingClient(ctx context.Context, natsClusterID, natsURL, natsSub
 		return nil, fmt.Errorf("ошибка подключения к NATS-Streaming: %w", err)
 	}
 
-	// Подписка на канал (используем Subscribe вместо SubscribeSync)
+	// Подписка на канал
 	sub, err := conn.Subscribe(natsSubject, func(msg *stan.Msg) {
 		order, err := models.NewOrder(msg.Data)
 		if err != nil {

@@ -1,7 +1,8 @@
 -- +goose Up
 -- +goose StatementBegin
 CREATE TABLE orders (
-                        order_uid SERIAL PRIMARY KEY,
+                        order_uid VARCHAR(255) PRIMARY KEY,
+                        id SERIAL UNIQUE ,
                         track_number VARCHAR(255) UNIQUE,
                         entry VARCHAR(255),
                         locale VARCHAR(2),
@@ -14,7 +15,7 @@ CREATE TABLE orders (
 );
 
 CREATE TABLE deliveries (
-                            order_uid SERIAL REFERENCES orders(order_uid),
+                            order_uid VARCHAR(255) REFERENCES orders(order_uid),
                             name VARCHAR(255),
                             phone VARCHAR(20),
                             zip VARCHAR(20),
@@ -26,7 +27,7 @@ CREATE TABLE deliveries (
 );
 
 CREATE TABLE payments (
-                          order_uid SERIAL REFERENCES orders(order_uid),
+                          order_uid VARCHAR(255) REFERENCES orders(order_uid),
                           transaction VARCHAR(255),
                           request_id VARCHAR(255),
                           currency VARCHAR(3),
@@ -41,7 +42,7 @@ CREATE TABLE payments (
 );
 
 CREATE TABLE items (
-                       order_uid SERIAL REFERENCES orders(order_uid),
+                       order_uid VARCHAR(255) REFERENCES orders(order_uid),
                        chrt_id INT,
                        track_number VARCHAR(255),
                        price NUMERIC(10,2),

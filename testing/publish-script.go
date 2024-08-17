@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/joho/godotenv"
 	"github.com/nats-io/stan.go"
 	"log"
 	"os"
@@ -12,6 +13,10 @@ import (
 
 func main() {
 
+	err := godotenv.Load(".env")
+	if err != nil {
+		fmt.Println("Error loading .env file", err)
+	}
 	natsClusterID := os.Getenv("NATS_CLUSTER_ID")
 	natsClientID := os.Getenv("NATS_CLIENT_ID")
 	natsURL := os.Getenv("NATS_URL")
@@ -30,7 +35,10 @@ func main() {
 	}(nc)
 
 	// Чтение данных из файла
-	orderData := getOrderDataFromFile("order.json")
+	orderData, err := getOrderDataFromFile("/Users/basty64/Programming/go/src/wb/testing/files/messages.json")
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// Создание сообщения
 	message := models.Order{
@@ -55,7 +63,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	publishOrder(natsURL, natsSubject, orderData)
 
 	// Публикация сообщения
 	err = nats.PublishOrderToNATS(natsURL, natsSubject, data)
@@ -64,10 +71,17 @@ func main() {
 	}
 }
 
-func getOrderDataFromFile(filename string) models.Order {
-	return models.Order{}
-}
+func getOrderDataFromFile(filename string) (models.Order, error) {
+	msg, err := os.ReadFile(filename)
+	if err != nil {
+		return models.Order{}, err
+	}
 
-func publishOrder(natsStreamingURL string, subject string, orderData models.Order) {
-	// ... (реализация публикации данных в канал)
+	var order models.Order
+	err = json.Unmarshal(msg, &order)
+	if err != nil {
+		fmt.Println("Ошибка декодирования JSON:", err)
+		return models.Order{}, err
+	}
+	return order, nil
 }

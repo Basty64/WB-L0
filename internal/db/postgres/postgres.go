@@ -55,7 +55,7 @@ func (repo *RepoPostgres) InsertOrder(ctx context.Context, order *models.Order) 
 
 	err := repo.connection.QueryRow(ctx, "INSERT INTO orders ("+
 		"TrackNumber, Entry, Delivery, Payment, Cart, Locale, InternalSignature, CustomerId, DeliveryService, Shardkey, SmId, DateCreated, OofShard) "+
-		"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING OrderUid",
+		"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING id",
 		order.TrackNumber,
 		order.Entry,
 		order.Delivery,
@@ -68,17 +68,17 @@ func (repo *RepoPostgres) InsertOrder(ctx context.Context, order *models.Order) 
 		order.Shardkey,
 		order.SmId,
 		order.DateCreated,
-		order.OofShard).Scan(&order.OrderUid)
+		order.OofShard).Scan(&order.ID)
 	if err != nil {
 		return 0, fmt.Errorf("failed to create order: %w", err)
 	}
-	return order.OrderUid, nil
+	return order.ID, nil
 }
 
-func (repo *RepoPostgres) GetOrder(ctx context.Context, orderUid int) (models.Order, error) {
+func (repo *RepoPostgres) GetOrder(ctx context.Context, ID int) (models.Order, error) {
 	var order models.Order
 
-	row, err := repo.connection.Query(ctx, "SELECT * FROM orders WHERE id = $1", orderUid)
+	row, err := repo.connection.Query(ctx, "SELECT * FROM orders WHERE id = $1", ID)
 	if err != nil {
 		return models.Order{}, err
 	}

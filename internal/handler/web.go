@@ -37,7 +37,7 @@ func NewServer(ctx context.Context, url string, database *postgres.RepoPostgres,
 
 	// Настройка маршрутов
 	mux.HandleFunc("/", handleIndex(templates))
-	mux.HandleFunc("/order/{orderUID}", handleOrder(ctx, inMemoryCache, database))
+	mux.HandleFunc("GET /order/{orderUID}", handleOrder(ctx, inMemoryCache, database))
 
 	return &Server{
 		server: server,

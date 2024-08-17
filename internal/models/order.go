@@ -3,7 +3,8 @@ package models
 import "encoding/json"
 
 type Order struct {
-	OrderUid          int      `json:"order_uid"`
+	ID                int      `json:"id"`
+	OrderUid          string   `json:"order_uid"`
 	TrackNumber       string   `json:"track_number"`
 	Entry             string   `json:"entry"`
 	Delivery          Delivery `json:"delivery"`

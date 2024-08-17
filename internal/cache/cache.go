@@ -76,7 +76,7 @@ func (i *InMemoryCache) LoadFromPostgres(ctx context.Context, database *postgres
 	}
 
 	for _, order := range orders {
-		i.Orders[order.OrderUid] = order
+		i.Orders[order.ID] = order
 	}
 
 	return nil
