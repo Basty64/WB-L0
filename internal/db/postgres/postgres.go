@@ -5,11 +5,32 @@ import (
 	"fmt"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"log"
+	"time"
 	"wb/internal/models"
 )
 
 type RepoPostgres struct {
 	connection *pgxpool.Pool
+}
+
+func (repo *RepoPostgres) Deadline() (deadline time.Time, ok bool) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (repo *RepoPostgres) Done() <-chan struct{} {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (repo *RepoPostgres) Err() error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (repo *RepoPostgres) Value(key any) any {
+	//TODO implement me
+	panic("implement me")
 }
 
 func Connect(ctx context.Context, url string) (*RepoPostgres, error) {

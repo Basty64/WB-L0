@@ -12,16 +12,16 @@ import (
 	"wb/internal/models"
 )
 
-type NATSSubscriber interface {
+type NatsSubscriber interface {
 	Subscribe(ctx context.Context, subject string, database db.Database, cache cache.Cache) error
 }
 
-type natsSubscriber struct {
+type Subscriber struct {
 	conn stan.Conn
 	nc   *nats.Conn
 }
 
-func NewNATSSubscriber(clusterID, clientID string, natsURL string) (*natsSubscriber, error) {
+func NewNATSSubscriber(clusterID, clientID, natsURL string) (*Subscriber, error) {
 	nc, err := nats.Connect(natsURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to NATS: %w", err)
@@ -32,13 +32,13 @@ func NewNATSSubscriber(clusterID, clientID string, natsURL string) (*natsSubscri
 		return nil, fmt.Errorf("failed to connect to NATS Streaming: %w", err)
 	}
 
-	return &natsSubscriber{
+	return &Subscriber{
 		conn: conn,
 		nc:   nc,
 	}, nil
 }
 
-func (n *natsSubscriber) Subscribe(ctx context.Context, subject string, database db.Database, cache *cache.InMemoryCache) error {
+func (n *Subscriber) Subscribe(ctx context.Context, subject string, database db.Database, cache *cache.InMemoryCache) error {
 	sub, err := n.conn.Subscribe(subject, func(msg *stan.Msg) {
 		var order models.Order
 		if err := json.Unmarshal(msg.Data, &order); err != nil {
@@ -51,7 +51,7 @@ func (n *natsSubscriber) Subscribe(ctx context.Context, subject string, database
 			return
 		}
 
-		if err := cache.SetOrder(context.Background(), order.OrderUid, order); err != nil {
+		if err := cache.InsertOrder(order.OrderUid, order); err != nil {
 			log.Printf("failed to set order in cache: %v", err)
 			return
 		}
@@ -79,7 +79,7 @@ func (n *natsSubscriber) Subscribe(ctx context.Context, subject string, database
 	return nil
 }
 
-func (n *natsSubscriber) Close() error {
+func (n *Subscriber) Close() error {
 	if err := n.conn.Close(); err != nil {
 		return fmt.Errorf("failed to close NATS Streaming connection: %w", err)
 	}
