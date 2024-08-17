@@ -1,6 +1,7 @@
 package models
 
 type Payment struct {
+	OrderUid     int    `json:"order_uid"`
 	Transaction  string `json:"transaction"`
 	RequestId    string `json:"request_id"`
 	Currency     string `json:"currency"`
