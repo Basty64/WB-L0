@@ -46,7 +46,7 @@ func NewServer(ctx context.Context, url string, database *postgres.RepoPostgres,
 
 func (s *Server) Start(urlServer string) error {
 
-	log.Printf("Сервер запущен по адресу %d\n", urlServer)
+	log.Printf("Сервер запущен по адресу %s\n", urlServer)
 	return s.server.ListenAndServe()
 }
 
@@ -91,7 +91,7 @@ func handleOrder(ctx context.Context, InMemoryCache *cache.InMemoryCache, db db.
 			// Добавить заказ в кэш
 			err = InMemoryCache.InsertOrder(orderUID, order)
 			if err != nil {
-				fmt.Errorf("ошибка при добавлении заказа в кэш: %v", err)
+				_ = fmt.Errorf("ошибка при добавлении заказа в кэш: %v", err)
 			}
 		}
 

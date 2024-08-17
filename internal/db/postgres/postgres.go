@@ -51,7 +51,7 @@ func (repo *RepoPostgres) CloseConnection() {
 	repo.connection.Close()
 }
 
-func (repo *RepoPostgres) InsertOrder(ctx context.Context, order models.Order) (int, error) {
+func (repo *RepoPostgres) InsertOrder(ctx context.Context, order *models.Order) (int, error) {
 
 	err := repo.connection.QueryRow(ctx, "INSERT INTO orders ("+
 		"TrackNumber, Entry, Delivery, Payment, Cart, Locale, InternalSignature, CustomerId, DeliveryService, Shardkey, SmId, DateCreated, OofShard) "+

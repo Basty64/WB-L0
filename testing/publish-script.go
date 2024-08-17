@@ -2,21 +2,32 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/nats-io/stan.go"
 	"log"
+	"os"
 	"wb/internal/models"
+	"wb/internal/nats"
 )
 
 func main() {
-	natsStreamingURL := "nats://localhost:4223"
-	subject := "orders"
+
+	natsClusterID := os.Getenv("NATS_CLUSTER_ID")
+	natsClientID := os.Getenv("NATS_CLIENT_ID")
+	natsURL := os.Getenv("NATS_URL")
+	natsSubject := os.Getenv("NATS_SUBJECT")
 
 	// Подключение к серверу NATS Streaming
-	nc, err := stan.Connect("my_cluster_id", "my_client_id", stan.NatsURL("nats://localhost:4222"))
+	nc, err := stan.Connect(natsClusterID, natsClientID, stan.NatsURL(natsURL))
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer nc.Close()
+	defer func(nc stan.Conn) {
+		err := nc.Close()
+		if err != nil {
+			fmt.Println(err)
+		}
+	}(nc)
 
 	// Чтение данных из файла
 	orderData := getOrderDataFromFile("order.json")
@@ -44,10 +55,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	publishOrder(natsStreamingURL, subject, orderData)
+	publishOrder(natsURL, natsSubject, orderData)
 
 	// Публикация сообщения
-	err = nc.Publish("my_subject", data)
+	err = nats.PublishOrderToNATS(natsURL, natsSubject, data)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -2,15 +2,12 @@ package nats
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/nats-io/nats.go"
 	"github.com/nats-io/stan.go"
 	"github.com/nats-io/stan.go/pb"
 	"log"
-	"os"
-	"time"
-	"wb/internal/db"
+	"wb/internal/db/postgres"
 	"wb/internal/models"
 )
 
@@ -20,38 +17,34 @@ type NatsStreamingClient struct {
 	close chan bool
 }
 
-func NewNatsStreamingClient(ctx context.Context, subject string, clusterID string, clientID string, url string, db db.Database) (*NatsStreamingClient, error) {
-
-	// Подключение к NATS-Streaming
-	conn, err := stan.Connect(clusterID, clientID, stan.NatsURL(url))
+// NewNatsStreamingClient ...
+func NewNatsStreamingClient(ctx context.Context, natsClusterID, natsURL, natsSubject string, database *postgres.RepoPostgres) (*NatsStreamingClient, error) {
+	// Подключение к NATS Streaming
+	conn, err := stan.Connect(natsClusterID, natsSubject, stan.NatsURL(natsURL))
 	if err != nil {
-		return nil, fmt.Errorf("Ошибка подключения к NATS-Streaming: %w", err)
+		return nil, fmt.Errorf("ошибка подключения к NATS-Streaming: %w", err)
 	}
 
-	// Подписка на канал
-	sub, err := conn.Subscribe(subject, func(m *stan.Msg) {
-		var message models.Order
-
-		err := json.Unmarshal(m.Data, &message)
+	// Подписка на канал (используем Subscribe вместо SubscribeSync)
+	sub, err := conn.Subscribe(natsSubject, func(msg *stan.Msg) {
+		order, err := models.NewOrder(msg.Data)
 		if err != nil {
-			log.Fatal(err)
+			log.Printf("ошибка при декодировании данных заказа: %v\n", err)
+			return
 		}
 
-		// Обработка данных заказа
-		// TO DO:
-		// Добавить валидацию данных заказа, чтобы нельзя было кидать в канал что угодно
-
-		// Сохранение данных в базу данных
-		// ...
-
-		_, err = db.InsertOrder(ctx, message)
+		id, err := database.InsertOrder(ctx, order)
 		if err != nil {
-			fmt.Errorf("Ошибка при сохранении сообщения из nats-streaming: %d", err)
+			log.Printf("Ошибка при записи данных заказа: %v\n", err)
 		}
-
+		if id == 0 {
+			fmt.Println("Данные не записаны")
+		} else {
+			fmt.Printf("Заказ %d успешно записан", id)
+		}
 	}, stan.StartAt(pb.StartPosition_NewOnly))
 	if err != nil {
-		return nil, fmt.Errorf("Ошибка при подписке на канал: %w", err)
+		return nil, fmt.Errorf("ошибка при подписке на канал: %w", err)
 	}
 
 	return &NatsStreamingClient{
@@ -61,31 +54,22 @@ func NewNatsStreamingClient(ctx context.Context, subject string, clusterID strin
 	}, nil
 }
 
+// Close ...
 func (c *NatsStreamingClient) Close() error {
 	c.close <- true
-	c.sub.Unsubscribe()
+	if err := c.sub.Unsubscribe(); err != nil {
+		return err
+	}
 	if err := c.conn.Close(); err != nil {
 		return err
 	}
 	return nil
 }
 
-func GetEnv(key, fallback string) string {
-	if value, ok := os.LookupEnv(key); ok {
-		return value
-	}
-	return fallback
-}
-
-func TimeTrack(start time.Time, name string) {
-	elapsed := time.Since(start)
-	log.Printf("%s took %s", name, elapsed)
-}
-
 func PublishOrderToNATS(natsURL string, subject string, order []byte) error {
 	nc, err := nats.Connect(natsURL)
 	if err != nil {
-		return fmt.Errorf("Ошибка при подключении к  NATS: %w", err)
+		return fmt.Errorf("ошибка при подключении к NATS: %w", err)
 	}
 	defer nc.Close()
 

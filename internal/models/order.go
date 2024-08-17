@@ -1,5 +1,7 @@
 package models
 
+import "encoding/json"
+
 type Order struct {
 	OrderUid          int      `json:"order_uid"`
 	TrackNumber       string   `json:"track_number"`
@@ -15,4 +17,12 @@ type Order struct {
 	SmId              int      `json:"sm_id"`
 	DateCreated       string   `json:"date_created"`
 	OofShard          string   `json:"oof_shard"`
+}
+
+func NewOrder(data []byte) (*Order, error) {
+	var order Order
+	if err := json.Unmarshal(data, &order); err != nil {
+		return nil, err
+	}
+	return &order, nil
 }
