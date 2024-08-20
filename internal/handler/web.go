@@ -3,7 +3,6 @@ package handler
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"html/template"
 	"log"
@@ -74,26 +73,7 @@ func handleOrder(ctx context.Context, InMemoryCache *cache.InMemoryCache, db db.
 		}
 
 		// Поиск заказа в кэше
-		order, err := InMemoryCache.GetOrder(orderUID)
-		if err != nil {
-			// Если заказ не найден в кэше, получить его из базы данных
-			var err error
-			order, err = db.GetOrder(ctx, orderUID)
-			if err != nil {
-				if errors.Is(err, cache.OrderNotFoundErr) {
-					http.Error(w, fmt.Sprint("заказ отсутствует"), http.StatusNotFound)
-					return
-				} else {
-					http.Error(w, fmt.Sprintf("Ошибка при получении данных заказа: %v", err), http.StatusInternalServerError)
-					return
-				}
-			}
-			// Добавить заказ в кэш
-			err = InMemoryCache.InsertOrder(orderUID, order)
-			if err != nil {
-				_ = fmt.Errorf("ошибка при добавлении заказа в кэш: %v", err)
-			}
-		}
+		order, _ := InMemoryCache.GetOrder(orderUID)
 
 		// Отображение данных заказа
 		data, err := json.Marshal(order)
@@ -108,3 +88,29 @@ func handleOrder(ctx context.Context, InMemoryCache *cache.InMemoryCache, db db.
 		}
 	}
 }
+
+//кусок кода с валидацией
+
+//		if err != nil {
+//			// Если заказ не найден в кэше, получить его из базы данных
+//			if errors.Is(err, cache.OrderNotFoundErr) {
+//				order, err := db.GetOrder(ctx, orderUID)
+//				if err != nil {
+//					log.Printf("Ошибка при поиске заказа №%d: %s", orderUID, err)
+//					http.Error(w, fmt.Sprint("Ошибка при получении данных заказа"), http.StatusInternalServerError)
+//					return
+//				}
+//				if order.ID == 0 {
+//					http.Error(w, fmt.Sprint("Заказ не найден"), http.StatusNotFound)
+//					return
+//				}
+//				// Добавить заказ в кэш
+//				err = InMemoryCache.InsertOrder(orderUID, order)
+//				if err != nil {
+//					log.Printf("ошибка при добавлении заказа в кэш: %v", err)
+//				}
+//			} else {
+//				log.Printf("Ошибка при поиске заказа №%d: %s", orderUID, err)
+//				http.Error(w, fmt.Sprint("Ошибка при получении данных заказа"), http.StatusInternalServerError)
+//			}
+//		}

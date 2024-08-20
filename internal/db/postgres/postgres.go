@@ -53,14 +53,10 @@ func (repo *RepoPostgres) CloseConnection() {
 
 func (repo *RepoPostgres) InsertOrder(ctx context.Context, order *models.Order) (int, error) {
 
-	err := repo.connection.QueryRow(ctx, "INSERT INTO orders ("+
-		"TrackNumber, Entry, Delivery, Payment, Cart, Locale, InternalSignature, CustomerId, DeliveryService, Shardkey, SmId, DateCreated, OofShard) "+
-		"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING id",
+	err := repo.connection.QueryRow(ctx, "INSERT INTO orders (order_uid, track_number, entry, Locale,internal_signature, customer_id, delivery_service, Shardkey, sm_id, date_created, oofshard) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING id",
+		order.OrderUid,
 		order.TrackNumber,
 		order.Entry,
-		order.Delivery,
-		order.Payment,
-		order.Item,
 		order.Locale,
 		order.InternalSignature,
 		order.CustomerId,
@@ -71,6 +67,54 @@ func (repo *RepoPostgres) InsertOrder(ctx context.Context, order *models.Order) 
 		order.OofShard).Scan(&order.ID)
 	if err != nil {
 		return 0, fmt.Errorf("failed to create order: %w", err)
+	}
+
+	_, err = repo.connection.Exec(ctx, "INSERT INTO deliveries (order_uid, name, phone, zip, city, address, region, email) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+		order.OrderUid,
+		order.Delivery.Name,
+		order.Delivery.Phone,
+		order.Delivery.Zip,
+		order.Delivery.City,
+		order.Delivery.Address,
+		order.Delivery.Region,
+		order.Delivery.Email)
+	if err != nil {
+		return 0, fmt.Errorf("failed to create deliveries table: %w", err)
+	}
+
+	_, err = repo.connection.Exec(ctx, "INSERT INTO payments (order_uid, transaction, request_id, currency, provider, amount, payment_dt, bank, delivery_cost, goods_total, custom_fee) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
+		order.OrderUid,
+		order.Payment.Transaction,
+		order.Payment.RequestId,
+		order.Payment.Currency,
+		order.Payment.Provider,
+		order.Payment.Amount,
+		time.Unix(int64(order.Payment.PaymentDt), 0),
+		order.Payment.Bank,
+		order.Payment.DeliveryCost,
+		order.Payment.GoodsTotal,
+		order.Payment.CustomFee)
+	if err != nil {
+		return 0, fmt.Errorf("failed to create payments table: %w", err)
+	}
+
+	for _, item := range order.Item {
+		_, err = repo.connection.Exec(ctx, "INSERT INTO items (order_uid, chrt_id, track_number, price, rid, name, sale, size, total_price, nm_id, brand, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)",
+			order.OrderUid,
+			item.ChrtId,
+			item.TrackNumber,
+			item.Price,
+			item.Rid,
+			item.Name,
+			item.Sale,
+			item.Size,
+			item.TotalPrice,
+			item.NmId,
+			item.Brand,
+			item.Status)
+		if err != nil {
+			return 0, fmt.Errorf("failed to create items table: %w", err)
+		}
 	}
 	return order.ID, nil
 }

@@ -11,7 +11,8 @@ CREATE TABLE orders (
                         delivery_service VARCHAR(255),
                         shardkey VARCHAR(2),
                         sm_id INT,
-                        date_created TIMESTAMP WITH TIME ZONE
+                        date_created TIMESTAMP WITH TIME ZONE,
+                        oofshard VARCHAR(2)
 );
 
 CREATE TABLE deliveries (
@@ -33,7 +34,7 @@ CREATE TABLE payments (
                           currency VARCHAR(3),
                           provider VARCHAR(255),
                           amount NUMERIC(10,2),
-                          payment_dt TIMESTAMP WITH TIME ZONE,
+                          payment_dt TIMESTAMP,
                           bank VARCHAR(255),
                           delivery_cost NUMERIC(10,2),
                           goods_total NUMERIC(10,2),

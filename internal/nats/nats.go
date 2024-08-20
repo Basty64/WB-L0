@@ -3,81 +3,99 @@ package nats
 import (
 	"context"
 	"fmt"
-	"github.com/nats-io/nats.go"
 	"github.com/nats-io/stan.go"
-	"github.com/nats-io/stan.go/pb"
-	"log"
+	log "github.com/sirupsen/logrus"
+	"wb/internal/cache"
 	"wb/internal/db/postgres"
 	"wb/internal/models"
 )
 
 type NatsStreamingClient struct {
-	conn  stan.Conn
-	sub   stan.Subscription
+	conn  *stan.Conn
+	cache *cache.InMemoryCache
+	db    *postgres.RepoPostgres
 	close chan bool
 }
 
 // NewNatsStreamingClient ...
-func NewNatsStreamingClient(ctx context.Context, natsClusterID, natsURL, natsSubject string, database *postgres.RepoPostgres) (*NatsStreamingClient, error) {
+func NewNatsStreamingClient(natsClusterID, natsURL, natsClientID string, db *postgres.RepoPostgres, oc *cache.InMemoryCache) (*NatsStreamingClient, error) {
 	// Подключение к NATS Streaming
-	conn, err := stan.Connect(natsClusterID, natsSubject, stan.NatsURL(natsURL))
+	sc, err := stan.Connect(natsClusterID, natsClientID, stan.NatsURL(natsURL))
 	if err != nil {
 		return nil, fmt.Errorf("ошибка подключения к NATS-Streaming: %w", err)
 	}
 
-	// Подписка на канал
-	sub, err := conn.Subscribe(natsSubject, func(msg *stan.Msg) {
-		order, err := models.NewOrder(msg.Data)
-		if err != nil {
-			log.Printf("ошибка при декодировании данных заказа: %v\n", err)
-			return
-		}
-
-		id, err := database.InsertOrder(ctx, order)
-		if err != nil {
-			log.Printf("Ошибка при записи данных заказа: %v\n", err)
-		}
-		if id == 0 {
-			fmt.Println("Данные не записаны")
-		} else {
-			fmt.Printf("Заказ %d успешно записан", id)
-		}
-	}, stan.StartAt(pb.StartPosition_NewOnly))
-	if err != nil {
-		return nil, fmt.Errorf("ошибка при подписке на канал: %w", err)
-	}
+	//NATS_SUBJECT = orders
+	//NATS_CLIENT_ID = delivery_service
 
 	return &NatsStreamingClient{
-		conn:  conn,
-		sub:   sub,
+		conn:  &sc,
+		cache: oc,
+		db:    db,
 		close: make(chan bool, 1),
 	}, nil
 }
 
-// Close ...
-func (c *NatsStreamingClient) Close() error {
-	c.close <- true
-	if err := c.sub.Unsubscribe(); err != nil {
-		return err
+func (nsc *NatsStreamingClient) Subscribe(ctx context.Context, natsSubject string) (stan.Subscription, error) {
+	// Подписка на канал
+	sub, err := (*nsc.conn).Subscribe(natsSubject,
+		func(msg *stan.Msg) {
+			log.Infoln("Received message from nats-streaming")
+			order, err := models.NewOrder(msg.Data)
+			if err != nil {
+				log.Printf("ошибка при декодировании данных заказа: %v\n", err)
+				return
+			}
+
+			id, err := nsc.db.InsertOrder(ctx, &order)
+			if err.Error() == `ERROR: duplicate key value violates unique constraint "orders_pkey" (SQLSTATE 23505)` {
+				log.Printf("Ошибка при записи данных заказа: %v\n", err)
+				if err := msg.Ack(); err != nil {
+					return
+				}
+			}
+			if id == 0 {
+				fmt.Println("Данные не записаны")
+				if err := msg.Ack(); err != nil {
+					return
+				}
+			} else {
+				fmt.Printf("Заказ %d успешно записан в базу данных", id)
+			}
+
+			_, ok := nsc.cache.GetOrder(id)
+			if ok {
+				log.Printf("order with id: %d already in cache", id)
+
+				if err := msg.Ack(); err != nil {
+					return
+				}
+				return
+			}
+			err = nsc.cache.InsertOrder(order.ID, order)
+			if err := msg.Ack(); err != nil {
+				return
+			}
+			log.Printf("order with id: %s added in cache and database", id)
+
+		}, stan.SetManualAckMode())
+	if err != nil {
+		return nil, err
 	}
-	if err := c.conn.Close(); err != nil {
-		return err
-	}
-	return nil
+	return sub, nil
 }
 
-func PublishOrderToNATS(natsURL string, subject string, order []byte) error {
-	nc, err := nats.Connect(natsURL)
-	if err != nil {
-		return fmt.Errorf("ошибка при подключении к NATS: %w", err)
+// Close ...
+func (nsc *NatsStreamingClient) Close(sub stan.Subscription) error {
+	nsc.close <- true
+
+	conne := *nsc.conn
+
+	if err := sub.Unsubscribe(); err != nil {
+		return err
 	}
-	defer nc.Close()
-
-	if err := nc.Publish(subject, order); err != nil {
-		return fmt.Errorf("failed to publish order to NATS: %w", err)
+	if err := conne.Close(); err != nil {
+		return err
 	}
-
-	log.Printf("published order to subject: %s", subject)
-
 	return nil
 }

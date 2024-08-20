@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/joho/godotenv"
+	"github.com/nats-io/stan.go"
 	"log"
 	"net/http"
 	"os"
@@ -42,9 +43,9 @@ func (a *App) Run() error {
 	// Получение параметров из окружения
 	postgresURL := os.Getenv("DATABASE_URL_POSTGRES")
 	natsClusterID := os.Getenv("NATS_CLUSTER_ID")
-	//natsClientID := os.Getenv("NATS_CLIENT_ID")
 	natsURL := os.Getenv("NATS_URL")
 	natsSubject := os.Getenv("NATS_SUBJECT")
+	natsClientID := os.Getenv("NATS_CLIENT_ID")
 	host := os.Getenv("APP_HOST")
 	port := os.Getenv("APP_PORT")
 
@@ -59,16 +60,18 @@ func (a *App) Run() error {
 	defer a.db.CloseConnection()
 
 	// Обработка сообщений с помощью Nats-streaming
-	natsClient, err := nats.NewNatsStreamingClient(a.ctx, natsClusterID, natsURL, natsSubject, a.db)
+	natsStreamingClient, err := nats.NewNatsStreamingClient(natsClusterID, natsURL, natsClientID, a.db, a.cache)
 	if err != nil {
 		log.Fatalf("failed to initialize NATS subscriber: %v", err)
 	}
+	sub, err := natsStreamingClient.Subscribe(a.ctx, natsSubject)
 
-	defer func(natsSubscriber *nats.NatsStreamingClient) {
-		err := natsSubscriber.Close()
+	defer func(natsClient *nats.NatsStreamingClient, sub stan.Subscription) {
+		err := natsClient.Close(sub)
 		if err != nil {
+			fmt.Printf("failed to close NATS subscriber: %v", err)
 		}
-	}(natsClient)
+	}(natsStreamingClient, sub)
 
 	// Обработка сигнала прерывания
 	//c := make(chan os.Signal, 1)

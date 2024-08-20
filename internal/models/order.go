@@ -20,10 +20,10 @@ type Order struct {
 	OofShard          string   `json:"oof_shard"`
 }
 
-func NewOrder(data []byte) (*Order, error) {
+func NewOrder(data []byte) (Order, error) {
 	var order Order
 	if err := json.Unmarshal(data, &order); err != nil {
-		return nil, err
+		return Order{}, err
 	}
-	return &order, nil
+	return order, nil
 }

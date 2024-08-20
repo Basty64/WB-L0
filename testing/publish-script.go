@@ -7,8 +7,8 @@ import (
 	"github.com/nats-io/stan.go"
 	"log"
 	"os"
+	"time"
 	"wb/internal/models"
-	"wb/internal/nats"
 )
 
 func main() {
@@ -17,13 +17,16 @@ func main() {
 	if err != nil {
 		fmt.Println("Error loading .env file", err)
 	}
-	natsClusterID := os.Getenv("NATS_CLUSTER_ID")
-	natsClientID := os.Getenv("NATS_CLIENT_ID")
+
+	// Генерируем уникальный идентификатор клиента (например, используя UUID)
+	clientID := "client-" + fmt.Sprintf("%d", time.Now().UnixNano())
+
+	//natsClientID := os.Getenv("NATS_CLIENT_ID")
 	natsURL := os.Getenv("NATS_URL")
 	natsSubject := os.Getenv("NATS_SUBJECT")
 
 	// Подключение к серверу NATS Streaming
-	nc, err := stan.Connect(natsClusterID, natsClientID, stan.NatsURL(natsURL))
+	nc, err := stan.Connect("test-cluster", clientID, stan.NatsURL(natsURL))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -65,10 +68,11 @@ func main() {
 	}
 
 	// Публикация сообщения
-	err = nats.PublishOrderToNATS(natsURL, natsSubject, data)
-	if err != nil {
-		log.Fatal(err)
+	if err := nc.Publish(natsSubject, data); err != nil {
+		fmt.Errorf("failed to publish order to NATS: %w", err)
 	}
+
+	log.Printf("published order to subject: %s", natsSubject)
 }
 
 func getOrderDataFromFile(filename string) (models.Order, error) {

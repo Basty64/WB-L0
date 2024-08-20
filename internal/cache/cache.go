@@ -11,7 +11,7 @@ import (
 
 type Cache interface {
 	InsertOrder(orderUid int, order models.Order) error
-	GetOrder(orderUid int) (models.Order, error)
+	GetOrder(orderUid int) (models.Order, bool)
 	GetAllOrders() ([]models.Order, error)
 	LoadFromPostgres(ctx context.Context, database *postgres.RepoPostgres) error
 }
@@ -39,17 +39,17 @@ func (i *InMemoryCache) InsertOrder(orderUid int, order models.Order) error {
 var OrderNotFoundErr error
 
 // GetOrder метод для веб-сервера - выдает заказ по айди
-func (i *InMemoryCache) GetOrder(orderUid int) (models.Order, error) {
+func (i *InMemoryCache) GetOrder(orderUid int) (models.Order, bool) {
 	i.Lock()
 	defer i.Unlock()
 
 	order, ok := i.Orders[orderUid]
 	if !ok {
 		OrderNotFoundErr = errors.New("order not found")
-		return models.Order{}, fmt.Errorf("order not found: %w", OrderNotFoundErr)
+		return models.Order{}, false
 	}
 
-	return order, nil
+	return order, true
 }
 
 // GetAllOrders показ всех заказов
