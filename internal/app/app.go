@@ -37,7 +37,7 @@ func (a *App) Run() error {
 
 	err := godotenv.Load(".env")
 	if err != nil {
-		fmt.Println("Error loading .env file", err)
+		fmt.Println("Ошибка при загрузке .env файла", err)
 	}
 
 	// Получение параметров из окружения
@@ -54,22 +54,30 @@ func (a *App) Run() error {
 	// База данных
 	database, err := postgres.Connect(a.ctx, postgresURL)
 	if err != nil {
-		log.Fatalf("failed to initialize database: %v", err)
+		log.Fatalf("Ошибка при инициализации базы данных: %v", err)
 	}
 	a.db = database
 	defer a.db.CloseConnection()
 
+	// Инициализация кэша
+	a.cache = cache.NewInMemoryCache()
+
+	// Загрузка данных из базы данных в кэш при запуске
+	if err := a.cache.LoadFromPostgres(a.ctx, a.db); err != nil {
+		log.Printf("Ошибка при загрузке кэша из базы: %v", err)
+	}
 	// Обработка сообщений с помощью Nats-streaming
 	natsStreamingClient, err := nats.NewNatsStreamingClient(natsClusterID, natsURL, natsClientID, a.db, a.cache)
 	if err != nil {
-		log.Fatalf("failed to initialize NATS subscriber: %v", err)
+		log.Fatalf("Ошибка при инициализации NATS subscriber: %v", err)
 	}
+
 	sub, err := natsStreamingClient.Subscribe(a.ctx, natsSubject)
 
 	defer func(natsClient *nats.NatsStreamingClient, sub stan.Subscription) {
 		err := natsClient.Close(sub)
 		if err != nil {
-			fmt.Printf("failed to close NATS subscriber: %v", err)
+			fmt.Printf("Ошибка при закрытии NATS subscriber: %v", err)
 		}
 	}(natsStreamingClient, sub)
 
@@ -78,20 +86,12 @@ func (a *App) Run() error {
 	//signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	//<-c
 
-	// Инициализация кэша
-	a.cache = cache.NewInMemoryCache()
-
-	// Загрузка данных из базы данных в кэш при запуске
-	if err := a.cache.LoadFromPostgres(a.ctx, a.db); err != nil {
-		log.Printf("failed to load cache from database: %v", err)
-	}
-
 	serverURL := fmt.Sprintf("%s:%s", host, port)
 	server, err := handler.NewServer(a.ctx, serverURL, a.db, a.cache)
 
 	go func() {
 		if err := server.Start(serverURL); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			fmt.Fprintf(os.Stderr, "Failed to start HTTP server: %v\n", err)
+			fmt.Fprintf(os.Stderr, "Ошибка при запуске http сервера: %v\n", err)
 			os.Exit(1)
 		}
 
@@ -100,7 +100,7 @@ func (a *App) Run() error {
 	<-ctx.Done()
 
 	if err := server.Close(); err != nil {
-		log.Fatalf("failed to shutdown web server: %v", err)
+		log.Fatalf("Ошибка при завершении работы сервера: %v", err)
 	}
 
 	return nil

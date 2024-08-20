@@ -45,7 +45,7 @@ CREATE TABLE payments (
 CREATE TABLE items (
                        order_uid VARCHAR(255) REFERENCES orders(order_uid),
                        chrt_id INT,
-                       track_number VARCHAR(255),
+                       track_number VARCHAR(255) UNIQUE,
                        price NUMERIC(10,2),
                        rid VARCHAR(255),
                        name VARCHAR(255),

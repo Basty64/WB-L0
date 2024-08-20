@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"strconv"
 	"wb/internal/cache"
-	"wb/internal/db"
 	"wb/internal/db/postgres"
 )
 
@@ -36,7 +35,7 @@ func NewServer(ctx context.Context, url string, database *postgres.RepoPostgres,
 
 	// Настройка маршрутов
 	mux.HandleFunc("/", handleIndex(templates))
-	mux.HandleFunc("GET /order/{orderUID}", handleOrder(ctx, inMemoryCache, database))
+	mux.HandleFunc("GET /order/{orderUID}", handleOrder(inMemoryCache))
 
 	return &Server{
 		server: server,
@@ -63,7 +62,7 @@ func handleIndex(templates *template.Template) http.HandlerFunc {
 	}
 }
 
-func handleOrder(ctx context.Context, InMemoryCache *cache.InMemoryCache, db db.Database) http.HandlerFunc {
+func handleOrder(InMemoryCache *cache.InMemoryCache) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		orderUIDstr := r.URL.Path[len("/order/"):]
