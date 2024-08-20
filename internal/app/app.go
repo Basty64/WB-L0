@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/joho/godotenv"
 	"github.com/nats-io/stan.go"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 	"os"
 	"wb/internal/cache"
@@ -87,7 +87,7 @@ func (a *App) Run() error {
 	//<-c
 
 	serverURL := fmt.Sprintf("%s:%s", host, port)
-	server, err := handler.NewServer(a.ctx, serverURL, a.db, a.cache)
+	server, err := handler.NewServer(serverURL, a.cache)
 
 	go func() {
 		if err := server.Start(serverURL); err != nil && !errors.Is(err, http.ErrServerClosed) {

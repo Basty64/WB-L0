@@ -1,31 +1,23 @@
 package handler
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"html/template"
-	"log"
 	"net/http"
 	"strconv"
 	"wb/internal/cache"
-	"wb/internal/db/postgres"
 )
 
 type Server struct {
 	server *http.Server
 }
 
-func NewServer(ctx context.Context, url string, database *postgres.RepoPostgres, inMemoryCache *cache.InMemoryCache) (*Server, error) {
+func NewServer(url string, inMemoryCache *cache.InMemoryCache) (*Server, error) {
 
 	// Инициализация маршрутизатора
 	mux := http.NewServeMux()
-
-	// Инициализация шаблонов
-	templates, err := template.ParseFiles("./templates/index.html")
-	if err != nil {
-		return nil, fmt.Errorf("ошибка при загрузке шаблонов: %w", err)
-	}
 
 	// Инициализация сервера
 	server := &http.Server{
@@ -34,8 +26,8 @@ func NewServer(ctx context.Context, url string, database *postgres.RepoPostgres,
 	}
 
 	// Настройка маршрутов
-	mux.HandleFunc("/", handleIndex(templates))
-	mux.HandleFunc("GET /order/{orderUID}", handleOrder(inMemoryCache))
+	mux.HandleFunc("GET /order", handleOrder(inMemoryCache))
+	mux.HandleFunc("/", handleIndex("show"))
 
 	return &Server{
 		server: server,
@@ -52,11 +44,18 @@ func (s *Server) Close() error {
 	return s.server.Close()
 }
 
-func handleIndex(templates *template.Template) http.HandlerFunc {
+func handleIndex(filename string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		err := templates.ExecuteTemplate(w, "index.html", nil)
-		if err != nil {
 
+		// Инициализация шаблонов
+		templates, err := template.ParseFiles("./frontend/" + filename + ".html")
+		if err != nil {
+			_ = fmt.Errorf("ошибка при загрузке шаблонов: %w", err)
+		}
+
+		err = templates.ExecuteTemplate(w, filename+".html", nil)
+		if err != nil {
+			_ = fmt.Errorf(err.Error())
 			return
 		}
 	}
@@ -65,10 +64,15 @@ func handleIndex(templates *template.Template) http.HandlerFunc {
 func handleOrder(InMemoryCache *cache.InMemoryCache) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		orderUIDstr := r.URL.Path[len("/order/"):]
+		orderUIDstr := r.URL.Query().Get("orderUID")
 		orderUID, err := strconv.Atoi(orderUIDstr)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Ошибка при загрузке страницы: %v", err), http.StatusInternalServerError)
+		}
+		if orderUID == 0 {
+			http.Error(w, fmt.Sprintf("Некорректный query параметр"), http.StatusBadRequest)
+			log.Errorf("%s", err)
+			return
 		}
 
 		// Поиск заказа в кэше
