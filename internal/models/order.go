@@ -1,7 +1,6 @@
 package models
 
 import (
-	"encoding/json"
 	"time"
 )
 
@@ -21,12 +20,4 @@ type Order struct {
 	SmId              int       `json:"sm_id"`
 	DateCreated       time.Time `json:"date_created"`
 	OofShard          string    `json:"oof_shard"`
-}
-
-func NewOrder(data []byte) (Order, error) {
-	var order Order
-	if err := json.Unmarshal(data, &order); err != nil {
-		return Order{}, err
-	}
-	return order, nil
 }

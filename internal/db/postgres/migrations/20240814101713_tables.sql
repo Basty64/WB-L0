@@ -2,7 +2,7 @@
 -- +goose StatementBegin
 CREATE TABLE orders (
                         order_uid VARCHAR(255) PRIMARY KEY,
-                        id SERIAL UNIQUE ,
+                        id SERIAL UNIQUE,
                         track_number VARCHAR(255) UNIQUE,
                         entry VARCHAR(255),
                         locale VARCHAR(2),

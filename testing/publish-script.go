@@ -21,7 +21,6 @@ func main() {
 	// Генерируем уникальный идентификатор клиента (например, используя UUID)
 	clientID := "client-" + fmt.Sprintf("%d", time.Now().UnixNano())
 
-	//natsClientID := os.Getenv("NATS_CLIENT_ID")
 	natsURL := os.Getenv("NATS_URL")
 	natsSubject := os.Getenv("NATS_SUBJECT")
 
@@ -38,7 +37,7 @@ func main() {
 	}(nc)
 
 	// Чтение данных из файла
-	orderData, err := getOrderDataFromFile("/Users/basty64/Programming/go/src/wb/testing/files/messages.json")
+	orderData, err := getOrderDataFromFile("./testing/files/wrong-messages.json")
 	if err != nil {
 		log.Fatal(err)
 	}

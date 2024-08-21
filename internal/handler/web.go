@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"strconv"
 	"wb/internal/cache"
+	"wb/internal/logs"
+	"wb/internal/models"
 )
 
 type Server struct {
@@ -26,7 +28,7 @@ func NewServer(url string, inMemoryCache *cache.InMemoryCache) (*Server, error) 
 	}
 
 	// Настройка маршрутов
-	mux.HandleFunc("GET /order", handleOrder(inMemoryCache))
+	mux.Handle("GET /order", logs.RequestLogger(handleOrder(inMemoryCache)))
 	mux.HandleFunc("/", handleIndex("show"))
 
 	return &Server{
@@ -76,7 +78,21 @@ func handleOrder(InMemoryCache *cache.InMemoryCache) http.HandlerFunc {
 		}
 
 		// Поиск заказа в кэше
-		order, _ := InMemoryCache.GetOrder(orderUID)
+		order, ok := InMemoryCache.GetOrder(orderUID)
+
+		if ok != true {
+			str := models.OrderNotFoundError{Text: "Заказ отсутствует"}
+			strjson, err := json.Marshal(str)
+			if err != nil {
+				log.Error(err)
+			}
+			w.Header().Set("Content-Type", "application/json")
+			_, err = w.Write(strjson)
+			if err != nil {
+				log.Error(err)
+			}
+			return
+		}
 
 		// Отображение данных заказа
 		data, err := json.Marshal(order)
@@ -87,7 +103,7 @@ func handleOrder(InMemoryCache *cache.InMemoryCache) http.HandlerFunc {
 		w.Header().Set("Content-Type", "application/json")
 		_, err = w.Write(data)
 		if err != nil {
-			return
+			log.Error(err)
 		}
 	}
 }

@@ -8,7 +8,7 @@ import (
 	"strings"
 	"wb/internal/cache"
 	"wb/internal/db/postgres"
-	"wb/internal/models"
+	"wb/internal/middleware"
 )
 
 type NatsStreamingClient struct {
@@ -43,9 +43,12 @@ func (nsc *NatsStreamingClient) Subscribe(ctx context.Context, natsSubject strin
 
 		func(msg *stan.Msg) {
 			log.Infoln("Получено сообщение из nats-streaming")
-			order, err := models.NewOrder(msg.Data)
+			order, err := middleware.NewOrder(msg.Data)
 			if err != nil {
 				log.Printf("ошибка при декодировании данных заказа: %v\n", err)
+				if err := msg.Ack(); err != nil {
+					return
+				}
 				return
 			}
 
