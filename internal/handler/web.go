@@ -69,7 +69,9 @@ func handleOrder(InMemoryCache *cache.InMemoryCache) http.HandlerFunc {
 		orderUIDstr := r.URL.Query().Get("orderUID")
 		orderUID, err := strconv.Atoi(orderUIDstr)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("Ошибка при загрузке страницы: %v", err), http.StatusInternalServerError)
+			http.Error(w, fmt.Sprintf("Ошибка при загрузке страницы"), http.StatusBadRequest)
+			log.Errorf("%s", err)
+			return
 		}
 		if orderUID == 0 {
 			http.Error(w, fmt.Sprintf("Некорректный query параметр"), http.StatusBadRequest)
@@ -107,29 +109,3 @@ func handleOrder(InMemoryCache *cache.InMemoryCache) http.HandlerFunc {
 		}
 	}
 }
-
-//кусок кода с валидацией
-
-//		if err != nil {
-//			// Если заказ не найден в кэше, получить его из базы данных
-//			if errors.Is(err, cache.OrderNotFoundErr) {
-//				order, err := db.GetOrder(ctx, orderUID)
-//				if err != nil {
-//					log.Printf("Ошибка при поиске заказа №%d: %s", orderUID, err)
-//					http.Error(w, fmt.Sprint("Ошибка при получении данных заказа"), http.StatusInternalServerError)
-//					return
-//				}
-//				if order.ID == 0 {
-//					http.Error(w, fmt.Sprint("Заказ не найден"), http.StatusNotFound)
-//					return
-//				}
-//				// Добавить заказ в кэш
-//				err = InMemoryCache.InsertOrder(orderUID, order)
-//				if err != nil {
-//					log.Printf("ошибка при добавлении заказа в кэш: %v", err)
-//				}
-//			} else {
-//				log.Printf("Ошибка при поиске заказа №%d: %s", orderUID, err)
-//				http.Error(w, fmt.Sprint("Ошибка при получении данных заказа"), http.StatusInternalServerError)
-//			}
-//		}

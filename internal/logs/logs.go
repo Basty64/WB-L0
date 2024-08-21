@@ -7,7 +7,7 @@ import (
 
 func RequestLogger(handler http.HandlerFunc) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("Received requests: %s %s", r.Method, r.URL)
+		log.Printf("Received request: %s %s", r.Method, r.URL.RawQuery)
 		handler.ServeHTTP(w, r)
 	})
 }
