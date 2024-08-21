@@ -1,6 +1,6 @@
 {
-  "order_uid": "b563feb7b2b84b6test",
-  "track_number": "WBILMTESTTRACK",
+  "order_uid": "21.08.2024",
+  "track_number": "Дима с др",
   "entry": "WBIL",
   "delivery": {
     "name": "Test Testov",
@@ -12,7 +12,7 @@
     "email": "test@gmail.com"
   },
   "payment": {
-    "transaction": "b563feb7b2b84b6test",
+    "transaction": "49867eb7b2b84b6test",
     "request_id": "",
     "currency": "USD",
     "provider": "wbpay",
@@ -26,7 +26,7 @@
   "items": [
     {
       "chrt_id": 9934930,
-      "track_number": "WBILMTESTTRACK",
+      "track_number": "Дима с др",
       "price": 453,
       "rid": "ab4219087a764ae0btest",
       "name": "Mascaras",

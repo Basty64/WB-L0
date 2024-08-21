@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"sync"
 	"wb/internal/db/postgres"
 	"wb/internal/models"
@@ -11,13 +12,13 @@ import (
 
 type Cache interface {
 	InsertOrder(orderUid int, order models.Order) error
-	GetOrder(orderUid int) (models.Order, error)
+	GetOrder(orderUid int) (models.Order, bool)
 	GetAllOrders() ([]models.Order, error)
 	LoadFromPostgres(ctx context.Context, database *postgres.RepoPostgres) error
 }
 
 type InMemoryCache struct {
-	sync.Mutex
+	mu     sync.Mutex
 	Orders map[int]models.Order
 }
 
@@ -28,8 +29,17 @@ func NewInMemoryCache() *InMemoryCache {
 }
 
 func (i *InMemoryCache) InsertOrder(orderUid int, order models.Order) error {
-	i.Lock()
-	defer i.Unlock()
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("Паника в GetOrder: %v", r)
+		}
+	}()
+	if i == nil {
+		return errors.New("структура InMemoryCache не определена")
+	}
+
+	i.mu.Lock()
+	defer i.mu.Unlock()
 
 	i.Orders[orderUid] = order
 
@@ -39,23 +49,40 @@ func (i *InMemoryCache) InsertOrder(orderUid int, order models.Order) error {
 var OrderNotFoundErr error
 
 // GetOrder метод для веб-сервера - выдает заказ по айди
-func (i *InMemoryCache) GetOrder(orderUid int) (models.Order, error) {
-	i.Lock()
-	defer i.Unlock()
+func (i *InMemoryCache) GetOrder(orderUid int) (models.Order, bool) {
+
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("Паника в GetOrder: %v", r)
+		}
+	}()
+	if i == nil {
+		return models.Order{}, false
+	}
+
+	i.mu.Lock()
+
+	defer i.mu.Unlock()
 
 	order, ok := i.Orders[orderUid]
 	if !ok {
 		OrderNotFoundErr = errors.New("order not found")
-		return models.Order{}, fmt.Errorf("order not found: %w", OrderNotFoundErr)
+		return models.Order{}, false
 	}
 
-	return order, nil
+	return order, true
 }
 
 // GetAllOrders показ всех заказов
 func (i *InMemoryCache) GetAllOrders() ([]models.Order, error) {
-	i.Lock()
-	defer i.Unlock()
+	i.mu.Lock()
+	defer i.mu.Unlock()
+
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("Паника в GetOrder: %v", r)
+		}
+	}()
 
 	var orders []models.Order
 	for _, order := range i.Orders {
@@ -67,12 +94,18 @@ func (i *InMemoryCache) GetAllOrders() ([]models.Order, error) {
 
 // LoadFromPostgres загрузка всех заказов в кэш при запуске приложения
 func (i *InMemoryCache) LoadFromPostgres(ctx context.Context, database *postgres.RepoPostgres) error {
-	i.Lock()
-	defer i.Unlock()
+	i.mu.Lock()
+	defer i.mu.Unlock()
+
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("Паника в GetOrder: %v", r)
+		}
+	}()
 
 	orders, err := database.GetAllOrders(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to load Orders from database: %w", err)
+		return fmt.Errorf(" Ошибка при загрузке заказов из хранилища: %w", err)
 	}
 
 	for _, order := range orders {

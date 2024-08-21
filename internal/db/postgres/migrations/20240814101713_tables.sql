@@ -2,7 +2,7 @@
 -- +goose StatementBegin
 CREATE TABLE orders (
                         order_uid VARCHAR(255) PRIMARY KEY,
-                        id SERIAL UNIQUE ,
+                        id SERIAL UNIQUE,
                         track_number VARCHAR(255) UNIQUE,
                         entry VARCHAR(255),
                         locale VARCHAR(2),
@@ -11,7 +11,8 @@ CREATE TABLE orders (
                         delivery_service VARCHAR(255),
                         shardkey VARCHAR(2),
                         sm_id INT,
-                        date_created TIMESTAMP WITH TIME ZONE
+                        date_created TIMESTAMP WITH TIME ZONE,
+                        oofshard VARCHAR(2)
 );
 
 CREATE TABLE deliveries (
@@ -33,7 +34,7 @@ CREATE TABLE payments (
                           currency VARCHAR(3),
                           provider VARCHAR(255),
                           amount NUMERIC(10,2),
-                          payment_dt TIMESTAMP WITH TIME ZONE,
+                          payment_dt TIMESTAMP,
                           bank VARCHAR(255),
                           delivery_cost NUMERIC(10,2),
                           goods_total NUMERIC(10,2),
@@ -44,7 +45,7 @@ CREATE TABLE payments (
 CREATE TABLE items (
                        order_uid VARCHAR(255) REFERENCES orders(order_uid),
                        chrt_id INT,
-                       track_number VARCHAR(255),
+                       track_number VARCHAR(255) UNIQUE,
                        price NUMERIC(10,2),
                        rid VARCHAR(255),
                        name VARCHAR(255),

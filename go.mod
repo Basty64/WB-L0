@@ -19,6 +19,7 @@ require (
 	github.com/nats-io/nats-streaming-server v0.25.6 // indirect
 	github.com/nats-io/nkeys v0.4.7 // indirect
 	github.com/nats-io/nuid v1.0.1 // indirect
+	github.com/sirupsen/logrus v1.9.3 // indirect
 	golang.org/x/crypto v0.25.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect
 	golang.org/x/sys v0.22.0 // indirect
