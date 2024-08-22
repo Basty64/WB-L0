@@ -26,9 +26,6 @@ func NewNatsStreamingClient(natsClusterID, natsURL, natsClientID string, db *pos
 		return nil, fmt.Errorf("ошибка подключения к NATS-Streaming: %w", err)
 	}
 
-	//NATS_SUBJECT = orders
-	//NATS_CLIENT_ID = delivery_service
-
 	return &NatsStreamingClient{
 		conn:  &sc,
 		cache: oc,
@@ -83,6 +80,7 @@ func (nsc *NatsStreamingClient) Subscribe(ctx context.Context, natsSubject strin
 				}
 				return
 			}
+
 			err = nsc.cache.InsertOrder(order.ID, order)
 			if err != nil {
 				if err := msg.Ack(); err != nil {

@@ -37,7 +37,7 @@ func main() {
 	}(nc)
 
 	// Чтение данных из файла
-	orderData, err := getOrderDataFromFile("./testing/files/wrong-messages.json")
+	orderData, err := getOrderDataFromFile("./testing/files/messages.json")
 	if err != nil {
 		log.Fatal(err)
 	}

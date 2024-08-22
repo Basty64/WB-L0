@@ -1,6 +1,6 @@
 {
-  "order_uid": "21.08.2024",
-  "track_number": "Дима с др",
+  "order_uid": "974I4G47TEST",
+  "track_number": "TEST20",
   "entry": "WBIL",
   "delivery": {
     "name": "Test Testov",
@@ -26,7 +26,7 @@
   "items": [
     {
       "chrt_id": 9934930,
-      "track_number": "Дима с др",
+      "track_number": "TEST20",
       "price": 453,
       "rid": "ab4219087a764ae0btest",
       "name": "Mascaras",

@@ -99,10 +99,10 @@ func (repo *RepoPostgres) InsertOrder(ctx context.Context, order *models.Order) 
 	return order.ID, nil
 }
 
-func (repo *RepoPostgres) GetOrder(ctx context.Context, ID int) (models.Order, error) {
+func (repo *RepoPostgres) GetOrder(ctx context.Context, orderUID string) (models.Order, error) {
 	var order models.Order
 
-	row, err := repo.connection.Query(ctx, "SELECT * FROM orders WHERE id = $1", ID)
+	row, err := repo.connection.Query(ctx, "SELECT * FROM orders WHERE order_uid = $1", orderUID)
 	if err != nil {
 		return models.Order{}, err
 	}
@@ -160,55 +160,3 @@ func (repo *RepoPostgres) GetAllOrders(ctx context.Context) ([]models.Order, err
 	defer rows.Close()
 	return orders, err
 }
-
-//rows, err := conn.Query(ctx, `
-//        SELECT
-//            o.order_uid,
-//            o.id,
-//            o.track_number,
-//            o.entry,
-//            o.locale,
-//            o.internal_signature,
-//            o.customer_id,
-//            o.delivery_service,
-//            o.shardkey,
-//            o.sm_id,
-//            o.date_created,
-//            o.oofshard,
-//            d.name,
-//            d.phone,
-//            d.zip,
-//            d.city,
-//            d.address,
-//            d.region,
-//            d.email,
-//            p.transaction,
-//            p.request_id,
-//            p.currency,
-//            p.provider,
-//            p.amount,
-//            p.payment_dt,
-//            p.bank,
-//            p.delivery_cost,
-//            p.goods_total,
-//            p.custom_fee,
-//            i.chrt_id,
-//            i.track_number,
-//            i.price,
-//            i.rid,
-//            i.name,
-//            i.sale,
-//            i.size,
-//            i.total_price,
-//            i.nm_id,
-//            i.brand,
-//            i.status
-//        FROM orders AS o
-//        JOIN deliveries AS d ON o.order_uid = d.order_uid
-//        JOIN payments AS p ON o.order_uid = p.order_uid
-//        JOIN items AS i ON o.order_uid = i.order_uid
-//    `)
-//    if err != nil {
-//        fmt.Fprintf(os.Stderr, "Query failed: %v\n", err)
-//        os.Exit(1)
-//    }
