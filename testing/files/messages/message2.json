@@ -1,0 +1,49 @@
+{
+  "order_uid": "QWERTY123TEST",
+  "track_number": "TEST12345",
+  "entry": "WBIL",
+  "delivery": {
+    "name": "Иван Иванов",
+    "phone": "+79991234567",
+    "zip": "123456",
+    "city": "Москва",
+    "address": "ул. Пушкина, д. 10",
+    "region": "Москва",
+    "email": "ivan.ivanov@example.com"
+  },
+  "payment": {
+    "transaction": "1234567890abcdef",
+    "request_id": "test_request_1",
+    "currency": "RUB",
+    "provider": "sberpay",
+    "amount": 5000,
+    "payment_dt": 1638000000,
+    "bank": "sberbank",
+    "delivery_cost": 500,
+    "goods_total": 4500,
+    "custom_fee": 0
+  },
+  "items": [
+    {
+      "chrt_id": 1234567,
+      "track_number": "TEST12345",
+      "price": 2000,
+      "rid": "abcdef1234567890test",
+      "name": "Смартфон",
+      "sale": 10,
+      "size": "128GB",
+      "total_price": 1800,
+      "nm_id": 9876543,
+      "brand": "Samsung",
+      "status": 200
+    }
+  ],
+  "locale": "ru",
+  "internal_signature": "test_signature",
+  "customer_id": "12345",
+  "delivery_service": "cdek",
+  "shardkey": "10",
+  "sm_id": 100,
+  "date_created": "2021-11-27T10:10:10Z",
+  "oof_shard": "2"
+}

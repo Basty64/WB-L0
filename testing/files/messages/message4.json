@@ -1,0 +1,49 @@
+{
+  "order_uid": "PREPAIDORDER",
+  "track_number": "TEST54321",
+  "entry": "WBIL",
+  "delivery": {
+    "name": "Дмитрий Сидоров",
+    "phone": "+79000000000",
+    "zip": "777777",
+    "city": "Екатеринбург",
+    "address": "ул. Ленина, д. 100",
+    "region": "Свердловская область",
+    "email": "dmitry.sidorov@example.com"
+  },
+  "payment": {
+    "transaction": "9876543210test",
+    "request_id": "test_request_3",
+    "currency": "RUB",
+    "provider": "tinkoff",
+    "amount": 3000,
+    "payment_dt": 1637970000,
+    "bank": "tinkoff",
+    "delivery_cost": 300,
+    "goods_total": 2700,
+    "custom_fee": 0
+  },
+  "items": [
+    {
+      "chrt_id": 9876543,
+      "track_number": "TEST54321",
+      "price": 3000,
+      "rid": "test9876543210",
+      "name": "Планшет",
+      "sale": 10,
+      "size": "10.1",
+      "total_price": 2700,
+      "nm_id": 8765432,
+      "brand": "Huawei",
+      "status": 200
+    }
+  ],
+  "locale": "ru",
+  "internal_signature": "test_signature_3",
+  "customer_id": "98765",
+  "delivery_service": "sdek",
+  "shardkey": "12",
+  "sm_id": 102,
+  "date_created": "2021-11-27T18:00:00Z",
+  "oof_shard": "4"
+}

@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"github.com/joho/godotenv"
 	"github.com/nats-io/stan.go"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"os"
+	"path/filepath"
 	"time"
 	"wb/internal/models"
 )
@@ -18,11 +19,13 @@ func main() {
 		fmt.Println("Error loading .env file", err)
 	}
 
-	// Генерируем уникальный идентификатор клиента (например, используя UUID)
+	// Генерируем уникальный идентификатор клиента
 	clientID := "client-" + fmt.Sprintf("%d", time.Now().UnixNano())
 
 	natsURL := os.Getenv("NATS_URL")
 	natsSubject := os.Getenv("NATS_SUBJECT")
+
+	path := "./testing/files/messages"
 
 	// Подключение к серверу NATS Streaming
 	nc, err := stan.Connect("test-cluster", clientID, stan.NatsURL(natsURL))
@@ -36,42 +39,52 @@ func main() {
 		}
 	}(nc)
 
-	// Чтение данных из файла
-	orderData, err := getOrderDataFromFile("./testing/files/messages.json")
+	messages, err := os.ReadDir(path)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
 	}
 
-	// Создание сообщения
-	message := models.Order{
-		OrderUid:          orderData.OrderUid,
-		TrackNumber:       orderData.TrackNumber,
-		Entry:             orderData.Entry,
-		Delivery:          orderData.Delivery,
-		Payment:           orderData.Payment,
-		Item:              orderData.Item,
-		Locale:            orderData.Locale,
-		InternalSignature: orderData.InternalSignature,
-		CustomerId:        orderData.CustomerId,
-		DeliveryService:   orderData.DeliveryService,
-		Shardkey:          orderData.Shardkey,
-		SmId:              orderData.SmId,
-		DateCreated:       orderData.DateCreated,
-		OofShard:          orderData.OofShard,
-	}
+	for _, m := range messages {
 
-	// Преобразование сообщения в JSON
-	data, err := json.Marshal(message)
-	if err != nil {
-		log.Fatal(err)
-	}
+		workpath := filepath.Join(path, m.Name())
 
-	// Публикация сообщения
-	if err := nc.Publish(natsSubject, data); err != nil {
-		fmt.Errorf("failed to publish order to NATS: %w", err)
-	}
+		// Чтение данных из файла
+		orderData, err := getOrderDataFromFile(workpath)
+		if err != nil {
+			log.Fatal(err)
+		}
 
-	log.Printf("published order to subject: %s", natsSubject)
+		// Создание сообщения
+		message := models.Order{
+			OrderUid:          orderData.OrderUid,
+			TrackNumber:       orderData.TrackNumber,
+			Entry:             orderData.Entry,
+			Delivery:          orderData.Delivery,
+			Payment:           orderData.Payment,
+			Item:              orderData.Item,
+			Locale:            orderData.Locale,
+			InternalSignature: orderData.InternalSignature,
+			CustomerId:        orderData.CustomerId,
+			DeliveryService:   orderData.DeliveryService,
+			Shardkey:          orderData.Shardkey,
+			SmId:              orderData.SmId,
+			DateCreated:       orderData.DateCreated,
+			OofShard:          orderData.OofShard,
+		}
+
+		// Преобразование сообщения в JSON
+		data, err := json.Marshal(message)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// Публикация сообщения
+		if err := nc.Publish(natsSubject, data); err != nil {
+			fmt.Errorf("failed to publish order to NATS: %w", err)
+		}
+
+		log.Printf("published order to subject: %s, name: %s", natsSubject, m.Name())
+	}
 }
 
 func getOrderDataFromFile(filename string) (models.Order, error) {

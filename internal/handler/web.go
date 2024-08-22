@@ -29,7 +29,7 @@ func NewServer(url string, inMemoryCache *cache.InMemoryCache) (*Server, error) 
 
 	// Настройка маршрутов
 	mux.Handle("GET /order", logs.RequestLogger(handleOrder(inMemoryCache)))
-	mux.HandleFunc("/", handleIndex("show"))
+	mux.HandleFunc("/", handleIndex("index"))
 
 	return &Server{
 		server: server,
@@ -70,7 +70,7 @@ func handleOrder(InMemoryCache *cache.InMemoryCache) http.HandlerFunc {
 		orderUID, err := strconv.Atoi(orderUIDstr)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Ошибка при загрузке страницы"), http.StatusBadRequest)
-			log.Errorf("%s", err)
+			//log.Errorf("%s", err)
 			return
 		}
 		if orderUID == 0 {

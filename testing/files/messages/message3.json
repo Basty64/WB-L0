@@ -1,0 +1,49 @@
+{
+  "order_uid": "CANCELLEDORDER",
+  "track_number": "NOTRACK",
+  "entry": "WBIL",
+  "delivery": {
+    "name": "Анна Петрова",
+    "phone": "+79123456789",
+    "zip": "111111",
+    "city": "Санкт-Петербург",
+    "address": "ул. Невского, д. 1",
+    "region": "Санкт-Петербург",
+    "email": "anna.petrova@example.com"
+  },
+  "payment": {
+    "transaction": "0000000000000000",
+    "request_id": "test_request_2",
+    "currency": "RUB",
+    "provider": "yandexmoney",
+    "amount": 2000,
+    "payment_dt": 1637950000,
+    "bank": "yandex",
+    "delivery_cost": 200,
+    "goods_total": 1800,
+    "custom_fee": 0
+  },
+  "items": [
+    {
+      "chrt_id": 8765432,
+      "track_number": "NOTRACK",
+      "price": 2000,
+      "rid": "test1234567890",
+      "name": "Кроссовки",
+      "sale": 0,
+      "size": "42",
+      "total_price": 1800,
+      "nm_id": 1234567,
+      "brand": "Nike",
+      "status": 102
+    }
+  ],
+  "locale": "ru",
+  "internal_signature": "test_signature_2",
+  "customer_id": "67890",
+  "delivery_service": "boxberry",
+  "shardkey": "11",
+  "sm_id": 101,
+  "date_created": "2021-11-27T15:00:00Z",
+  "oof_shard": "3"
+}
