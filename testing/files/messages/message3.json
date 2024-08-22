@@ -1,6 +1,6 @@
 {
-  "order_uid": "CANCELLEDORDER",
-  "track_number": "NOTRACK",
+  "order_uid": "8258624TEST",
+  "track_number": "TESTTRACK3",
   "entry": "WBIL",
   "delivery": {
     "name": "Анна Петрова",

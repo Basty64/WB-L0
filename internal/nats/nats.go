@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/nats-io/stan.go"
 	log "github.com/sirupsen/logrus"
-	"strings"
 	"wb/internal/cache"
 	"wb/internal/db/postgres"
 	"wb/internal/middleware"
@@ -49,48 +48,51 @@ func (nsc *NatsStreamingClient) Subscribe(ctx context.Context, natsSubject strin
 				return
 			}
 
-			id, err := nsc.db.InsertOrder(ctx, &order)
-			if err != nil {
-				if strings.Contains(err.Error(), `ERROR: duplicate key`) {
-					log.Printf("Ошибка при записи данных заказа -%v\n", err)
-					if err := msg.Ack(); err != nil {
-						return
-					}
-				} else {
-					log.Printf("Ошибка при получении сообщения: %v\n", err)
-				}
-				return
-			}
-			if id == 0 {
-				fmt.Println("Данные не записаны")
+			exist := nsc.db.GetOrder(ctx, order.OrderUid)
+
+			if exist {
+				log.Println("Заказ с данным uid уже существует")
 				if err := msg.Ack(); err != nil {
 					return
 				}
 				return
 			} else {
-				log.Printf("Заказ %d успешно записан в базу данных", id)
-			}
-
-			_, ok := nsc.cache.GetOrder(id)
-			if ok {
-				log.Printf("Заказ с id: %d уже находится в кэше", id)
-
-				if err := msg.Ack(); err != nil {
+				id, err := nsc.db.InsertOrder(ctx, &order)
+				if err != nil {
+					log.Errorf("Ошибка при получении сообщения: %v\n", err)
 					return
 				}
-				return
-			}
-
-			err = nsc.cache.InsertOrder(order.ID, order)
-			if err != nil {
-				if err := msg.Ack(); err != nil {
+				if id == 0 {
+					fmt.Println("Данные не записаны")
+					if err := msg.Ack(); err != nil {
+						return
+					}
 					return
 				} else {
-					log.Printf("Ошибка при добавлении сообщения в кэш: %v\n", err)
+					log.Printf("Заказ c id: %d успешно записан в базу данных", id)
+				}
+
+				_, ok := nsc.cache.GetOrder(id)
+				if ok {
+					log.Printf("Заказ с id: %d уже находится в кэше", id)
+
+					if err := msg.Ack(); err != nil {
+						return
+					}
 					return
 				}
+
+				err = nsc.cache.InsertOrder(order.ID, order)
+				if err != nil {
+					if err := msg.Ack(); err != nil {
+						return
+					} else {
+						log.Errorf("Ошибка при добавлении сообщения в кэш: %v\n", err)
+						return
+					}
+				}
+				log.Printf("Заказ с id: %d добавлен в кэш", id)
 			}
-			log.Printf("Заказ с id: %d добавлен в кэш и хранилище", id)
 
 		}, stan.SetManualAckMode())
 	if err != nil {

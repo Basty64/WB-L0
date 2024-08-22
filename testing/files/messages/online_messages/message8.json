@@ -1,0 +1,49 @@
+{
+  "order_uid": "PROMOORDER",
+  "track_number": "TEST77777",
+  "entry": "WBIL",
+  "delivery": {
+    "name": "Ольга Смирнова",
+    "phone": "+79500000000",
+    "zip": "660000",
+    "city": "Красноярск",
+    "address": "ул. Мира, д. 5",
+    "region": "Красноярский край",
+    "email": "olga.smirnova@example.com"
+  },
+  "payment": {
+    "transaction": "test7777777777",
+    "request_id": "test_request_6",
+    "currency": "RUB",
+    "provider": "webmoney",
+    "amount": 2500,
+    "payment_dt": 1638150000,
+    "bank": "webmoney",
+    "delivery_cost": 300,
+    "goods_total": 2800,
+    "custom_fee": 0
+  },
+  "items": [
+    {
+      "chrt_id": 3000000,
+      "track_number": "TEST77777",
+      "price": 3000,
+      "rid": "test3000000",
+      "name": "Футболка",
+      "sale": 10,
+      "size": "L",
+      "total_price": 2700,
+      "nm_id": 3000,
+      "brand": "Adidas",
+      "status": 200
+    }
+  ],
+  "locale": "ru",
+  "internal_signature": "test_signature_6",
+  "customer_id": "30000",
+  "delivery_service": "dhl",
+  "shardkey": "15",
+  "sm_id": 105,
+  "date_created": "2021-11-29T10:00:00Z",
+  "oof_shard": "7"
+}

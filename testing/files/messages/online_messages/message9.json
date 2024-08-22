@@ -1,0 +1,49 @@
+{
+  "order_uid": "PICKUPORDER",
+  "track_number": "TEST44444",
+  "entry": "WBIL",
+  "delivery": {
+    "name": "Алексей Козлов",
+    "phone": "+79310000000",
+    "zip": "190000",
+    "city": "Санкт-Петербург",
+    "address": "Пункт выдачи №123",
+    "region": "Санкт-Петербург",
+    "email": "alexey.kozlov@example.com"
+  },
+  "payment": {
+    "transaction": "test4444444444",
+    "request_id": "test_request_7",
+    "currency": "RUB",
+    "provider": "sberpay",
+    "amount": 1500,
+    "payment_dt": 1638200000,
+    "bank": "sberbank",
+    "delivery_cost": 200,
+    "goods_total": 1300,
+    "custom_fee": 0
+  },
+  "items": [
+    {
+      "chrt_id": 4000000,
+      "track_number": "TEST44444",
+      "price": 1500,
+      "rid": "test4000000",
+      "name": "Наушники",
+      "sale": 0,
+      "size": "Белые",
+      "total_price": 1300,
+      "nm_id": 4000,
+      "brand": "Sony",
+      "status": 200
+    }
+  ],
+  "locale": "ru",
+  "internal_signature": "test_signature_7",
+  "customer_id": "40000",
+  "delivery_service": "pickpoint",
+  "shardkey": "16",
+  "sm_id": 106,
+  "date_created": "2021-11-29T16:00:00Z",
+  "oof_shard": "8"
+}

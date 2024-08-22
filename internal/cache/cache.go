@@ -6,6 +6,7 @@ import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"sync"
+	"time"
 	"wb/internal/db/postgres"
 	"wb/internal/models"
 )
@@ -103,10 +104,21 @@ func (i *InMemoryCache) LoadFromPostgres(ctx context.Context, database *postgres
 		}
 	}()
 
+	log.Println("Загрузка кэша из базы данных...")
 	orders, err := database.GetAllOrders(ctx)
 	if err != nil {
 		return fmt.Errorf(" Ошибка при загрузке заказов из хранилища: %w", err)
 	}
+
+	time.Sleep(1 * time.Second)
+
+	if len(orders) == 0 {
+		log.Println("Заказы в бд отсутствуют")
+	} else {
+		log.Printf("Заказы в количестве: %d загружены в кэш", len(orders))
+	}
+
+	time.Sleep(1 * time.Second)
 
 	for _, order := range orders {
 		i.Orders[order.ID] = order

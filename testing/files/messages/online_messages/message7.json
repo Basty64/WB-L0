@@ -1,0 +1,49 @@
+{
+  "order_uid": "RETURNEDORDER",
+  "track_number": "TEST11111",
+  "entry": "WBIL",
+  "delivery": {
+    "name": "Сергей Петров",
+    "phone": "+79110000000",
+    "zip": "190000",
+    "city": "Санкт-Петербург",
+    "address": "ул. Ленина, д. 1",
+    "region": "Санкт-Петербург",
+    "email": "sergey.petrov@example.com"
+  },
+  "payment": {
+    "transaction": "test1111111111",
+    "request_id": "test_request_5",
+    "currency": "RUB",
+    "provider": "webmoney",
+    "amount": 4000,
+    "payment_dt": 1638100000,
+    "bank": "webmoney",
+    "delivery_cost": 400,
+    "goods_total": 3600,
+    "custom_fee": 0
+  },
+  "items": [
+    {
+      "chrt_id": 2000000,
+      "track_number": "TEST11111",
+      "price": 4000,
+      "rid": "test2000000",
+      "name": "Кофеварка",
+      "sale": 0,
+      "size": null,
+      "total_price": 3600,
+      "nm_id": 2000,
+      "brand": "Bosch",
+      "status": 101
+    }
+  ],
+  "locale": "ru",
+  "internal_signature": "test_signature_5",
+  "customer_id": "20000",
+  "delivery_service": "dpd",
+  "shardkey": "14",
+  "sm_id": 104,
+  "date_created": "2021-11-28T18:00:00Z",
+  "oof_shard": "6"
+}

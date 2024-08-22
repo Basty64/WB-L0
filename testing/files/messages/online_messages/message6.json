@@ -1,0 +1,49 @@
+{
+  "order_uid": "FREESHIPPINGORDER",
+  "track_number": "TEST98765",
+  "entry": "WBIL",
+  "delivery": {
+    "name": "Екатерина Иванова",
+    "phone": "+79210000000",
+    "zip": "191025",
+    "city": "Санкт-Петербург",
+    "address": "ул. Невский, д. 10",
+    "region": "Санкт-Петербург",
+    "email": "ekaterina.ivanova@example.com"
+  },
+  "payment": {
+    "transaction": "test9876543210",
+    "request_id": "test_request_4",
+    "currency": "RUB",
+    "provider": "qiwi",
+    "amount": 1000,
+    "payment_dt": 1638050000,
+    "bank": "qiwi",
+    "delivery_cost": 0,
+    "goods_total": 1000,
+    "custom_fee": 0
+  },
+  "items": [
+    {
+      "chrt_id": 1000000,
+      "track_number": "TEST98765",
+      "price": 1000,
+      "rid": "test1000000",
+      "name": "Книга",
+      "sale": 0,
+      "size": null,
+      "total_price": 1000,
+      "nm_id": 1000,
+      "brand": "Издательство",
+      "status": 200
+    }
+  ],
+  "locale": "ru",
+  "internal_signature": "test_signature_4",
+  "customer_id": "10000",
+  "delivery_service": "pochta",
+  "shardkey": "13",
+  "sm_id": 103,
+  "date_created": "2021-11-28T12:00:00Z",
+  "oof_shard": "5"
+}

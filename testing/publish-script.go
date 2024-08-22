@@ -25,7 +25,7 @@ func main() {
 	natsURL := os.Getenv("NATS_URL")
 	natsSubject := os.Getenv("NATS_SUBJECT")
 
-	path := "./testing/files/messages"
+	path := "./testing/files/messages/online_messages"
 
 	// Подключение к серверу NATS Streaming
 	nc, err := stan.Connect("test-cluster", clientID, stan.NatsURL(natsURL))

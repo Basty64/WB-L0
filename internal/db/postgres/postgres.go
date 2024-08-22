@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"time"
 	"wb/internal/models"
 )
@@ -99,34 +99,20 @@ func (repo *RepoPostgres) InsertOrder(ctx context.Context, order *models.Order) 
 	return order.ID, nil
 }
 
-func (repo *RepoPostgres) GetOrder(ctx context.Context, orderUID string) (models.Order, error) {
-	var order models.Order
+func (repo *RepoPostgres) GetOrder(ctx context.Context, orderUID string) bool {
 
-	row, err := repo.connection.Query(ctx, "SELECT * FROM orders WHERE order_uid = $1", orderUID)
+	var count int
+	err := repo.connection.QueryRow(ctx, "SELECT COUNT(*) FROM orders WHERE order_uid = $1", orderUID).Scan(&count)
 	if err != nil {
-		return models.Order{}, err
+		log.Errorf("Ошибка при соединении с бд: %s", err)
+		return false
 	}
 
-	for row.Next() {
-		err := row.Scan(
-			order.OrderUid,
-			order.TrackNumber,
-			order.Entry,
-			order.Locale,
-			order.InternalSignature,
-			order.CustomerId,
-			order.DeliveryService,
-			order.Shardkey,
-			order.SmId,
-			order.DateCreated,
-			order.OofShard,
-		)
-		if err != nil {
-			return models.Order{}, err
-		}
+	if count == 0 {
+		return false
+	} else {
+		return true
 	}
-	defer row.Close()
-	return order, err
 }
 
 func (repo *RepoPostgres) GetAllOrders(ctx context.Context) ([]models.Order, error) {
