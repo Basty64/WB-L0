@@ -107,7 +107,7 @@ func (i *InMemoryCache) LoadFromPostgres(ctx context.Context, database *postgres
 	log.Println("Загрузка кэша из базы данных...")
 	orders, err := database.GetAllOrders(ctx)
 	if err != nil {
-		return fmt.Errorf(" Ошибка при загрузке заказов из хранилища: %w", err)
+		return fmt.Errorf("ошибка при загрузке заказов из хранилища: %w", err)
 	}
 
 	time.Sleep(1 * time.Second)

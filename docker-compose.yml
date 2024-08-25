@@ -6,13 +6,14 @@ services:
     image: postgres:14
     container_name: delivery_service_db
     ports:
-      - "5434:5432"
-    build: "./postgres"
-    restart: "always"
+      - "5432:5432"
+    restart: unless-stopped
     environment:
       POSTGRES_DB: "delivery_service"
       POSTGRES_USER: "admin"
       POSTGRES_PASSWORD: "admin"
+    networks:
+      - app-net
 
   nats-streaming:
     image: nats-streaming:latest
@@ -25,11 +26,35 @@ services:
       - NATS_STREAMING_PORT=4222
       - NATS_HTTP_PORT=8222
     restart: always
+    networks:
+      - app-net
+
+  migrations:
+    image: delivery_service
+    container_name: migrations
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: bash -c "cd /wb/internal/db/postgres/migrations && goose postgres 'postgresql://admin:admin@delivery_service_db:5432/delivery_service?sslmode=disable' up"
+    depends_on:
+      - postgres
+    networks:
+      - app-net
 
   delivery-service:
-    image: service-image
-    container_name: delivery_service
+    ports:
+      - "8080:8080"
     build:
       dockerfile: Dockerfile
-    command: [ "./wb" ]
-    restart: always
+    image: delivery_service
+    container_name: delivery_service
+    env_file: .env
+    depends_on:
+      - nats-streaming
+      - migrations
+    restart: unless-stopped
+    networks:
+      - app-net
+networks:
+  app-net:
+    driver: bridge

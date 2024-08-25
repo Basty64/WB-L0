@@ -52,6 +52,7 @@ func (a *App) Run() error {
 	// Инициализация компонентов
 
 	// База данных
+	log.Println("Устанавливаю соединение с базой данных...")
 	database, err := postgres.Connect(a.ctx, postgresURL)
 	if err != nil {
 		log.Fatalf("Ошибка при инициализации базы данных: %v", err)
@@ -63,16 +64,19 @@ func (a *App) Run() error {
 	a.cache = cache.NewInMemoryCache()
 
 	// Загрузка данных из базы данных в кэш при запуске
-	if err := a.cache.LoadFromPostgres(a.ctx, a.db); err != nil {
-		log.Printf("Ошибка при загрузке кэша из базы: %v", err)
+	if err = a.cache.LoadFromPostgres(a.ctx, a.db); err != nil {
+		log.Errorf("Ошибка при загрузке кэша из базы - %v", err)
 	}
 	// Обработка сообщений с помощью Nats-streaming
 	natsStreamingClient, err := nats.NewNatsStreamingClient(natsClusterID, natsURL, natsClientID, a.db, a.cache)
 	if err != nil {
 		log.Fatalf("Ошибка при инициализации NATS subscriber: %v", err)
+	} else {
+		a.natsClient = natsStreamingClient
+		log.Println("Nats streaming запущен")
 	}
 
-	sub, err := natsStreamingClient.Subscribe(a.ctx, natsSubject)
+	sub, err := a.natsClient.Subscribe(a.ctx, natsSubject)
 
 	defer func(natsClient *nats.NatsStreamingClient, sub stan.Subscription) {
 		err := natsClient.Close(sub)
@@ -80,11 +84,6 @@ func (a *App) Run() error {
 			fmt.Printf("Ошибка при закрытии NATS subscriber: %v", err)
 		}
 	}(natsStreamingClient, sub)
-
-	// Обработка сигнала прерывания
-	//c := make(chan os.Signal, 1)
-	//signal.Notify(c, os.Interrupt, syscall.SIGTERM)
-	//<-c
 
 	serverURL := fmt.Sprintf("%s:%s", host, port)
 	server, err := handler.NewServer(serverURL, a.cache)

@@ -16,13 +16,23 @@ type RepoPostgres struct {
 func Connect(ctx context.Context, url string) (*RepoPostgres, error) {
 	poolConfig, err := pgxpool.ParseConfig(url)
 	if err != nil {
-		log.Fatalf("Ошибка при парсинге конфига базы данных: %w", err)
+		return nil, fmt.Errorf("ошибка при парсинге конфига базы данных: %w", err)
 	}
 
 	dbConn, err := pgxpool.NewWithConfig(ctx, poolConfig)
 	if err != nil {
-		log.Fatalf("Ошибка при подключении к базе данных: %w", err)
+		return nil, fmt.Errorf("ошибка при подключении к базе данных: %w", err)
 	}
+
+	conn, err := dbConn.Acquire(context.Background())
+	if err != nil {
+		return nil, fmt.Errorf("ошибка получения соединения: %w", err)
+	} else {
+		log.Println("Соединение с базой данных установлено")
+	}
+	defer conn.Release()
+
+	time.Sleep(1 * time.Second)
 
 	return &RepoPostgres{connection: dbConn}, nil
 }

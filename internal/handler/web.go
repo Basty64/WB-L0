@@ -38,7 +38,7 @@ func NewServer(url string, inMemoryCache *cache.InMemoryCache) (*Server, error) 
 
 func (s *Server) Start(urlServer string) error {
 
-	log.Printf("Сервер запущен по адресу %s\n", urlServer)
+	log.Printf("Сервер запущен по адресу %s", urlServer)
 	return s.server.ListenAndServe()
 }
 
