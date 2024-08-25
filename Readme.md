@@ -126,6 +126,11 @@ Status Codes  [code:count]                      0:118745  200:479057
 
 ## Результаты тестирования с помощью утилиты WRK:
 
+Команда:
+```
+wrk -t 10 -c 10000 -d 60s http://localhost:8080 
+```
+
 ```
  10 threads and 10000 connections
  
