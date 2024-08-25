@@ -6,12 +6,11 @@ RUN apk update && apk add git bash
 
 WORKDIR /wb
 
-COPY go.mod go.sum ./
+COPY ../../go.mod go.sum ./
 
 RUN go mod download
-RUN go install github.com/pressly/goose/v3/cmd/goose@latest
 
-COPY . .
+COPY ../.. .
 
 EXPOSE 8080
 
