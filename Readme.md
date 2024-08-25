@@ -59,3 +59,5 @@ http://localhost:8080
 * Бэк -
 go-1.22.6 || postgres 14 || nats-streaming
 * Фронт - html || css || java-script
+
+## --Updates soon--
