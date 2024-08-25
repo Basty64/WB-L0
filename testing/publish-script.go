@@ -14,9 +14,9 @@ import (
 
 func main() {
 
-	err := godotenv.Load(".env")
+	err := godotenv.Load("/wb/.env")
 	if err != nil {
-		fmt.Println("Error loading .env file", err)
+		log.Error("Error loading .env file", err)
 	}
 
 	// Генерируем уникальный идентификатор клиента
@@ -25,7 +25,7 @@ func main() {
 	natsURL := os.Getenv("NATS_URL")
 	natsSubject := os.Getenv("NATS_SUBJECT")
 
-	path := "./testing/files/messages/online_messages"
+	path := "/wb/testing/files/messages"
 
 	// Подключение к серверу NATS Streaming
 	nc, err := stan.Connect("test-cluster", clientID, stan.NatsURL(natsURL))
@@ -80,7 +80,7 @@ func main() {
 
 		// Публикация сообщения
 		if err := nc.Publish(natsSubject, data); err != nil {
-			fmt.Errorf("failed to publish order to NATS: %w", err)
+			log.Errorf("failed to publish order to NATS: %s", err)
 		}
 
 		log.Printf("published order to subject: %s, name: %s", natsSubject, m.Name())
@@ -96,7 +96,7 @@ func getOrderDataFromFile(filename string) (models.Order, error) {
 	var order models.Order
 	err = json.Unmarshal(msg, &order)
 	if err != nil {
-		fmt.Println("Ошибка декодирования JSON:", err)
+		log.Error("Ошибка декодирования JSON:", err)
 		return models.Order{}, err
 	}
 	return order, nil
