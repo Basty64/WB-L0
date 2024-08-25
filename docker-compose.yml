@@ -14,15 +14,20 @@ services:
       POSTGRES_PASSWORD: "admin"
     networks:
       - app-net
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U admin -h deliver_service_db -p 5432" ]
+      interval: 5s  # Проверяет каждые 5 секунд
+      timeout: 5s   # Прерывает проверку через 5 секунд
+      retries: 10  # Попыток проверки
 
   migrations:
     container_name: migrations
-    depends_on:
-      - postgres
     build:
       context: .
       dockerfile: docker/migrations/Dockerfile
     command: bash -c "goose postgres 'postgresql://admin:admin@delivery_service_db:5432/delivery_service?sslmode=disable' up"
+    depends_on:
+      - postgres
     networks:
       - app-net
 
