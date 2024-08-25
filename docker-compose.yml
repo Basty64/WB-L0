@@ -16,9 +16,9 @@ services:
       - app-net
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U admin -h deliver_service_db -p 5432" ]
-      interval: 5s  # Проверяет каждые 5 секунд
-      timeout: 5s   # Прерывает проверку через 5 секунд
-      retries: 10  # Попыток проверки
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   migrations:
     container_name: migrations

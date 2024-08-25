@@ -104,3 +104,5 @@ func (a *App) Run() error {
 
 	return nil
 }
+
+//TODO Написать автотесты для сервиса
