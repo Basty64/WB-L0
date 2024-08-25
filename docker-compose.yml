@@ -15,6 +15,18 @@ services:
     networks:
       - app-net
 
+  migrations:
+    image: delivery_service
+    container_name: migrations
+    depends_on:
+      - postgres
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: bash -c "cd /wb/internal/db/postgres/migrations && goose postgres 'postgresql://admin:admin@delivery_service_db:5432/delivery_service?sslmode=disable' up"
+    networks:
+      - app-net
+
   nats-streaming:
     image: nats-streaming:latest
     ports:
@@ -26,18 +38,6 @@ services:
       - NATS_STREAMING_PORT=4222
       - NATS_HTTP_PORT=8222
     restart: always
-    networks:
-      - app-net
-
-  migrations:
-    image: delivery_service
-    container_name: migrations
-    build:
-      context: .
-      dockerfile: Dockerfile
-    command: bash -c "cd /wb/internal/db/postgres/migrations && goose postgres 'postgresql://admin:admin@delivery_service_db:5432/delivery_service?sslmode=disable' up"
-    depends_on:
-      - postgres
     networks:
       - app-net
 

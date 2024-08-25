@@ -79,7 +79,7 @@ func (repo *RepoPostgres) InsertOrder(ctx context.Context, order *models.Order) 
 		order.Payment.Currency,
 		order.Payment.Provider,
 		order.Payment.Amount,
-		time.Unix(int64(order.Payment.PaymentDt), 0),
+		order.Payment.PaymentDt,
 		order.Payment.Bank,
 		order.Payment.DeliveryCost,
 		order.Payment.GoodsTotal,
@@ -88,7 +88,7 @@ func (repo *RepoPostgres) InsertOrder(ctx context.Context, order *models.Order) 
 		return 0, fmt.Errorf("failed to create payments table: %w", err)
 	}
 
-	for _, item := range order.Item {
+	for _, item := range order.Items {
 		_, err = repo.connection.Exec(ctx, "INSERT INTO items (order_uid, chrt_id, track_number, price, rid, name, sale, size, total_price, nm_id, brand, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)",
 			order.OrderUid,
 			item.ChrtId,
@@ -151,8 +151,94 @@ func (repo *RepoPostgres) GetAllOrders(ctx context.Context) ([]models.Order, err
 		if err != nil {
 			return nil, err
 		}
+
+		order.Delivery, err = GetDeliveryByOrderUID(ctx, repo.connection, order.OrderUid)
+		if err != nil {
+			log.Fatalf("Ошибка при формировании структуры delivery: %v", err)
+		}
+		order.Payment, err = GetPaymentByOrderUID(ctx, repo.connection, order.OrderUid)
+		if err != nil {
+			log.Fatalf("Ошибка при формировании структуры payment: %v", err)
+		}
+		order.Items, err = GetItemsByOrderUID(ctx, repo.connection, order.OrderUid)
+		if err != nil {
+			log.Fatalf("Ошибка при формировании структуры items: %v", err)
+		}
+
 		orders = append(orders, order)
 	}
 	defer rows.Close()
 	return orders, err
+}
+
+func GetDeliveryByOrderUID(ctx context.Context, pool *pgxpool.Pool, orderUID string) (models.Delivery, error) {
+	var delivery models.Delivery
+
+	err := pool.QueryRow(ctx, "SELECT * FROM deliveries WHERE order_uid = $1", orderUID).Scan(
+		&delivery.OrderUid,
+		&delivery.Name,
+		&delivery.Phone,
+		&delivery.Zip,
+		&delivery.City,
+		&delivery.Address,
+		&delivery.Region,
+		&delivery.Email)
+	if err != nil {
+		return delivery, err
+	}
+	return delivery, nil
+}
+
+func GetPaymentByOrderUID(ctx context.Context, pool *pgxpool.Pool, orderUID string) (models.Payment, error) {
+	var payment models.Payment
+	err := pool.QueryRow(ctx, "SELECT * FROM payments WHERE order_uid = $1", orderUID).Scan(
+		&payment.OrderUid,
+		&payment.Transaction,
+		&payment.RequestId,
+		&payment.Currency,
+		&payment.Provider,
+		&payment.Amount,
+		&payment.PaymentDt,
+		&payment.Bank,
+		&payment.DeliveryCost,
+		&payment.GoodsTotal,
+		&payment.CustomFee,
+	)
+	if err != nil {
+		return payment, err
+	}
+	return payment, nil
+}
+
+func GetItemsByOrderUID(ctx context.Context, pool *pgxpool.Pool, orderUID string) ([]models.Items, error) {
+	rows, err := pool.Query(ctx, "SELECT * FROM items WHERE order_uid = $1", orderUID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	items := make([]models.Items, 0)
+	for rows.Next() {
+		var item models.Items
+		err = rows.Scan(
+			&item.OrderUid,
+			&item.ChrtId,
+			&item.TrackNumber,
+			&item.Price,
+			&item.Rid,
+			&item.Name,
+			&item.Sale,
+			&item.Size,
+			&item.TotalPrice,
+			&item.NmId,
+			&item.Brand,
+			&item.Status,
+		)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, item)
+	}
+
+	return items, nil
 }

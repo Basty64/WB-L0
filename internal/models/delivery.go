@@ -1,7 +1,7 @@
 package models
 
 type Delivery struct {
-	OrderUid int    `json:"order_uid"`
+	OrderUid string `json:"order_uid"`
 	Name     string `json:"name"`
 	Phone    string `json:"phone"`
 	Zip      string `json:"zip"`
