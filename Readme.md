@@ -1,7 +1,6 @@
 # Delivery-service
 ## Демонстрационный сервис, отображающий данные о заказах
 
-### Функциональность:
 
 Реализованы
 
@@ -27,7 +26,7 @@ docker compose up --build
 
 При последующих запусках:
 ```
-docker compose up --build
+docker compose up
 ```
 
 Публикация сообщений в nats:
