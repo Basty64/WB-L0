@@ -34,7 +34,7 @@ CREATE TABLE payments (
                           currency VARCHAR(3),
                           provider VARCHAR(255),
                           amount NUMERIC(10,2),
-                          payment_dt TIMESTAMP,
+                          payment_dt INT,
                           bank VARCHAR(255),
                           delivery_cost NUMERIC(10,2),
                           goods_total NUMERIC(10,2),

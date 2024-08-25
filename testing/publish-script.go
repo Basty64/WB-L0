@@ -61,7 +61,7 @@ func main() {
 			Entry:             orderData.Entry,
 			Delivery:          orderData.Delivery,
 			Payment:           orderData.Payment,
-			Item:              orderData.Item,
+			Items:             orderData.Items,
 			Locale:            orderData.Locale,
 			InternalSignature: orderData.InternalSignature,
 			CustomerId:        orderData.CustomerId,

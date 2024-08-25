@@ -1,4 +1,4 @@
 GET localhost:8080/order?orderUID=dngke
 
 ###
-GET http://localhost:8080/order
+GET http://localhost:8080/order?orderuid=1
